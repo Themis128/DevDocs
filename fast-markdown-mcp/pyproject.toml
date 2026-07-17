@@ -20,8 +20,9 @@ dependencies = [
     "fastapi>=0.100.0"
 ]
 
+# Fixed entry point to properly run the async main function
 [project.scripts]
-fast-markdown-mcp = "fast_markdown_mcp.server:main"
+fast-markdown-mcp = "fast_markdown_mcp.server:run_main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/fast_markdown_mcp"]

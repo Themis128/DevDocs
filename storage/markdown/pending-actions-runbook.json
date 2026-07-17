@@ -1,0 +1,19 @@
+{
+  "filepath": "pending-actions-runbook.md",
+  "timestamp": "2026-07-17T19:39:00Z",
+  "tags": ["infrastructure", "kubernetes", "cloudflare", "postiz", "metoro", "runbook"],
+  "description": "Detailed procedures for 4 pending infrastructure actions: monitoring node selector fix, metoro eBPF disable, Cloudflare API token creation, and Postiz PVC upgrade",
+  "related_files": [
+    "infrastructure/postiz/k8s/postiz.yaml",
+    "infrastructure/monitoring/kube-prom-stack-values.yaml",
+    ".github/workflows/monitoring-node-selector-fix.yml",
+    ".github/workflows/store-cloudflare-token.yml",
+    ".github/workflows/verify-cloudflare-token.yml"
+  ],
+  "action_items": [
+    "monitoring-node-selector-fix.yml apply",
+    "metoro-node-agent disable",
+    "CLOUDFLARE_API_TOKEN secret creation",
+    "Postiz PVC 2Gi → 20Gi update"
+  ]
+}

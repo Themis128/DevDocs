@@ -1,0 +1,24 @@
+{
+  "title": "Cloudless.gr Architecture Documentation",
+  "timestamp": "2026-07-17T16:31:00",
+  "pages": [
+    {
+      "title": "Architecture Overview",
+      "url": "file://cloudless-architecture",
+      "timestamp": "2026-07-17T16:31:00",
+      "internal_links": 0,
+      "external_links": 0
+    }
+  ],
+  "is_consolidated": true,
+  "last_updated": "2026-07-17T16:31:00",
+  "stats": {
+    "wordCount": 350,
+    "charCount": 2200
+  },
+  "metadata": {
+    "tags": ["architecture", "cluster", "migration", "cloudless", "kubernetes"],
+    "category": "Infrastructure",
+    "priority": "high"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "title": "AWS CloudTrail Payment Preferences Event Migration",
+  "type": "ops-runbook",
+  "tags": ["aws", "cloudtrail", "billing", "migration", "notification"],
+  "status": "no-action-required",
+  "account": "278585680617",
+  "region": "us-east-1",
+  "startDate": "2026-09-28",
+  "completionDate": "2026-10-07",
+  "impact": "none",
+  "relatedFiles": ["AWS-MIGRATION-PLAN.md", "MIGRATION-STATUS.md", "scripts/aws-cost-reduction.sh"],
+  "created": "2026-07-17"
+}

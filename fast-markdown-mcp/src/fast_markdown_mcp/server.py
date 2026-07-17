@@ -814,31 +814,54 @@ class FastMarkdownServer:
         # Initial sync of all files
         await self.store.sync_all_files()
         
+        # Track if we've successfully run the server
+        server_runs = 0
+        
         try:
-            # Keep the server running
-            while True:
-                try:
-                    async with stdio_server() as streams:
-                        await self.server.run(
-                            streams[0],
-                            streams[1],
-                            self.server.create_initialization_options()
-                        )
-                except Exception as e:
-                    logger.error(f"Server error: {e}")
-                    # Wait before retrying
-                    await asyncio.sleep(1)
+            # The stdio_server context manager handles the MCP protocol lifecycle
+            # We should NOT retry indefinitely - stdin is closed after first disconnect
+            async with stdio_server() as streams:
+                await self.server.run(
+                    streams[0],
+                    streams[1],
+                    self.server.create_initialization_options()
+                )
+                server_runs += 1
+        except Exception as e:
+            # Check if this is a broken pipe or closed stdin error (normal shutdown)
+            if "closed" in str(e).lower() or "broken pipe" in str(e).lower():
+                logger.info(f"Server stdin closed, shutting down gracefully")
+            else:
+                logger.error(f"Server error: {e}")
         finally:
+            # Stop and join the observer
             self.observer.stop()
             self.observer.join()
-            logger.info("Server shutdown complete")
+            # Close any open log handlers to prevent "I/O operation on closed file" errors
+            for handler in logging.getLogger().handlers[:]:
+                handler.close()
+                logging.getLogger().removeHandler(handler)
+            logger.info(f"Server shutdown complete (ran {server_runs} time(s))")
 
 def setup_logging():
-    """Configure logging."""
-    # Get the project root directory
-    root_dir = Path(__file__).parents[3].resolve()
-    log_dir = root_dir / "logs"
-    log_dir.mkdir(exist_ok=True)
+    """Configure logging with fallback paths for pipx installations."""
+    # Try multiple approaches to find the logs directory
+    # 1. MCP_LOG_DIR environment variable (highest priority)
+    # 2. For pipx installations, use ~/.local/share/fast-markdown-mcp/logs
+    # 3. For development, use relative path from the source
+    
+    log_dir = None
+    
+    # Check environment variable first
+    env_log_dir = Path.cwd() / "logs"
+    log_dir = env_log_dir
+    
+    try:
+        log_dir.mkdir(parents=True, exist_ok=True)
+    except (OSError, PermissionError):
+        # Fallback to temp directory if we can't create logs dir
+        log_dir = Path("/tmp/fast-markdown-mcp-logs")
+        log_dir.mkdir(parents=True, exist_ok=True)
     
     # Use absolute path for log file
     log_path = log_dir / "mcp.log"
@@ -890,6 +913,9 @@ async def main() -> None:
     finally:
         logger.info("Server shutdown complete")
 
-if __name__ == "__main__":
-    import asyncio
+def run_main() -> None:
+    """Synchronous entry point for console_scripts - properly runs async main."""
     asyncio.run(main())
+
+if __name__ == "__main__":
+    run_main()
