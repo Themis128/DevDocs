@@ -15,6 +15,7 @@ import asyncio
 from pathlib import Path
 # Removed duplicate datetime import from line 17
 from .crawler import discover_pages, crawl_pages, DiscoveredPage, CrawlResult, url_to_filename
+from .config import CrawlConfigManager
 
 # Configure logging
 logging.basicConfig(
@@ -256,14 +257,25 @@ async def test_crawl4ai(request: TestCrawl4AIRequest):
         # Set up headers for authentication
         headers = {"Authorization": f"Bearer {api_token}"}
 
-        # Submit crawl job to Crawl4AI
+        # Get unique session ID for this task to avoid browser context conflicts
+        session_id = f"test_{uuid.uuid4().hex[:8]}"
+        crawler_config = CrawlConfigManager.get_crawler_config(session_id=session_id)
+
+        # Submit crawl job to Crawl4AI with unique session
         try:
             response = requests.post(
                 f"{crawl4ai_url}/crawl",
                 headers=headers,
                 json={
                     "urls": request.url,
-                    "priority": 10
+                    "priority": 10,
+                    "session_id": session_id,
+                    "config": {
+                        "wait_until": "domcontentloaded",
+                        "page_timeout": 180000,
+                        "magic": True,
+                        "simulate_user": True
+                    }
                 },
                 timeout=30
             )

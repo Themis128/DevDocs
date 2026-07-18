@@ -15,11 +15,10 @@ class CrawlConfigManager:
             headless=True,
             viewport_width=1920,
             viewport_height=1080,
-            use_managed_browser=True,
+            use_managed_browser=False,  # Disable managed browser to avoid context sharing
             ignore_https_errors=True,
-            text_mode=True,  # Ensure text extraction mode
             java_script_enabled=True,
-            wait_for_timeout=5000,  # Give more time for content to load
+            wait_for_timeout=10000,  # Increased timeout for slow sites
             headers={
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
                 "Accept-Language": "en-US,en;q=0.5",
@@ -32,7 +31,9 @@ class CrawlConfigManager:
                 "--disable-gpu",
                 "--disable-dev-shm-usage",
                 "--no-sandbox",
-                "--ignore-certificate-errors"
+                "--ignore-certificate-errors",
+                "--disable-web-security",
+                "--disable-features=IsolateOrigins,site-per-process"
             ]
         )
         
@@ -42,14 +43,15 @@ class CrawlConfigManager:
             cache_mode=CacheMode.ENABLED,
             exclude_external_links=False,
             exclude_social_media_links=True,
-            wait_until='networkidle',
-            page_timeout=120000,
+            wait_until='domcontentloaded',  # Changed from networkidle for faster completion
+            page_timeout=180000,  # Increased to 180s for very slow sites
             simulate_user=True,
             magic=True,
             scan_full_page=True,
-            word_count_threshold=10, # Lower threshold
+            word_count_threshold=10,
             remove_overlay_elements=True,
-            process_iframes=True # Disable iframe processing to focus on main content
+            process_iframes=False
+            # Note: text_mode removed - not supported in crawl4ai 0.9+
         )
         
         return config
@@ -71,8 +73,8 @@ class CrawlConfigManager:
         )
         
         return CrawlerRunConfig(
-            # Session management
-            session_id=session_id,
+            # Session management - ensure unique session per task
+            session_id=session_id or f"session_{uuid.uuid4().hex[:8]}",
             
             # Content settings
             markdown_generator=markdown_generator,
@@ -80,20 +82,20 @@ class CrawlConfigManager:
             exclude_external_links=False,  # Allow external links
             exclude_social_media_links=True,
             
-            # Page loading settings
-            wait_until='networkidle',
-            page_timeout=120000,
+            # Page loading settings - use domcontentloaded for reliability
+            wait_until='domcontentloaded',
+            page_timeout=180000,  # Increased to 180s for slow sites
             
             # Core features
             simulate_user=True,
             magic=True,  # Enable magic mode for better content detection
             scan_full_page=True,  # Scan the full page
-            text_mode=True,  # Ensure text extraction
             
             # Additional settings
             word_count_threshold=5,  # Lower threshold to match content filter
             remove_overlay_elements=True,
             process_iframes=False  # Disable iframe processing to focus on main content
+            # Note: text_mode removed - not supported in crawl4ai 0.9+
         )
 
 class SSLCertificateHandler:

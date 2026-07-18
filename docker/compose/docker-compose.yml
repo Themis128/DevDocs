@@ -4,13 +4,12 @@ services:
       context: .
       dockerfile: docker/dockerfiles/Dockerfile.frontend
       args:
-        - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL} # Pass the variable as a build arg
+        - NEXT_PUBLIC_BACKEND_URL=
     container_name: devdocs-frontend
     ports:
       - "3001:3001"
     environment:
-      # - NEXT_PUBLIC_BACKEND_URL=http://backend:24125
-      - MCP_HOST=mcp
+      - MCP_HOST=host.docker.internal
     depends_on:
       - backend
     networks:
@@ -29,38 +28,26 @@ services:
       - ./logs:/app/logs
       - ./crawl_results:/app/crawl_results
     environment:
-      - MCP_HOST=mcp
+      - MCP_HOST=host.docker.internal
       - CRAWL4AI_URL=http://crawl4ai:11235
-      - CRAWL4AI_API_TOKEN=${CRAWL4AI_API_TOKEN:-devdocs-demo-key}
-      - DISCOVERY_POLLING_TIMEOUT_SECONDS=${DISCOVERY_POLLING_TIMEOUT_SECONDS:-300} # Add discovery timeout
+      - CRAWL4AI_API_TOKEN=devdocs-demo-key
+      - DISCOVERY_POLLING_TIMEOUT_SECONDS=300
     depends_on:
       - crawl4ai
-      - mcp
     networks:
       - devdocs-network
     restart: unless-stopped
-
-  mcp:
-    build:
-      context: .
-      dockerfile: docker/dockerfiles/Dockerfile.mcp
-    container_name: devdocs-mcp
-    volumes:
-      - ./storage/markdown:/app/storage/markdown
-      - ./logs:/app/logs
-    networks:
-      - devdocs-network
-    stdin_open: true  # Keep stdin open
-    tty: true  # Allocate a pseudo-TTY
-    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   crawl4ai:
-    image: unclecode/crawl4ai:all
+    image: unclecode/crawl4ai:0.9.2
+    platform: linux/amd64
     container_name: devdocs-crawl4ai
     ports:
       - "11235:11235"
     environment:
-      - CRAWL4AI_API_TOKEN=${CRAWL4AI_API_TOKEN:-devdocs-demo-key}
+      - CRAWL4AI_API_TOKEN=devdocs-demo-key
       - MAX_CONCURRENT_TASKS=5
       - DISABLE_AUTH=false
     volumes:

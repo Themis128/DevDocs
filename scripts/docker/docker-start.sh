@@ -16,6 +16,18 @@ mkdir -p storage/markdown
 mkdir -p crawl_results
 chmod -R 777 logs storage crawl_results
 
+# Start MCP server on the host FIRST (per docker-strategy.md)
+echo -e "${BLUE}Starting MCP server on host...${NC}"
+if [ -d "fast-markdown-mcp/venv" ]; then
+    source fast-markdown-mcp/venv/bin/activate
+    PYTHONPATH="$ROOT_DIR/fast-markdown-mcp/src" python -m fast_markdown_mcp.server "$ROOT_DIR/storage/markdown" > logs/mcp.log 2>&1 &
+    MCP_PID=$!
+    echo -e "${GREEN}MCP server started with PID: $MCP_PID${NC}"
+else
+    echo -e "${RED}Warning: fast-markdown-mcp/venv not found. MCP will run in Docker container only.${NC}"
+fi
+sleep 2
+
 # Detect which docker compose command to use
 if docker compose version &>/dev/null; then
     DOCKER_COMPOSE="docker compose"
@@ -41,6 +53,7 @@ echo -e "${GREEN}All services are running!${NC}"
 echo -e "${BLUE}Frontend:${NC} http://localhost:3001"
 echo -e "${BLUE}Backend:${NC} http://localhost:24125"
 echo -e "${BLUE}Crawl4AI:${NC} http://localhost:11235"
+echo -e "${BLUE}MCP (host):${NC} stdio mode - no port"
 echo -e "${BLUE}Logs:${NC} ./logs/"
 echo -e "${BLUE}Press Ctrl+C to stop all services${NC}"
 
@@ -48,6 +61,12 @@ echo -e "${BLUE}Press Ctrl+C to stop all services${NC}"
 cleanup() {
     echo -e "\n${BLUE}Shutting down services...${NC}"
     $DOCKER_COMPOSE down
+    # Also kill MCP server if it was started
+    if [ ! -z "$MCP_PID" ]; then
+        kill $MCP_PID 2>/dev/null
+        wait $MCP_PID 2>/dev/null
+        echo -e "${GREEN}MCP server stopped${NC}"
+    fi
     echo -e "${GREEN}All services stopped${NC}"
     exit 0
 }
@@ -57,13 +76,12 @@ trap cleanup SIGINT SIGTERM
 # Keep the script running
 echo -e "${BLUE}Monitoring services...${NC}"
 while true; do
-    # Check if all containers are running
+    # Check if all containers are running (MCP is optional now since it runs on host)
     FRONTEND_RUNNING=$(docker ps -q -f name=devdocs-frontend)
     BACKEND_RUNNING=$(docker ps -q -f name=devdocs-backend)
-    MCP_RUNNING=$(docker ps -q -f name=devdocs-mcp)
     CRAWL4AI_RUNNING=$(docker ps -q -f name=devdocs-crawl4ai)
     
-    if [ -z "$FRONTEND_RUNNING" ] || [ -z "$BACKEND_RUNNING" ] || [ -z "$MCP_RUNNING" ] || [ -z "$CRAWL4AI_RUNNING" ]; then
+    if [ -z "$FRONTEND_RUNNING" ] || [ -z "$BACKEND_RUNNING" ] || [ -z "$CRAWL4AI_RUNNING" ]; then
         echo -e "${RED}One or more containers have stopped unexpectedly${NC}"
         echo -e "${BLUE}Shutting down services...${NC}"
         $DOCKER_COMPOSE down

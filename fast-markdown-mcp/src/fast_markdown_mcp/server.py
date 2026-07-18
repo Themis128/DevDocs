@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import os
 import logging
 import signal
 import json
@@ -893,13 +894,18 @@ def handle_sigterm(signum, frame):
 
 async def main() -> None:
     """Main entry point."""
-    if len(sys.argv) != 2:
-        print("Usage: fast-markdown-mcp <storage_path>")
-        sys.exit(1)
-    
     setup_logging()
     signal.signal(signal.SIGTERM, handle_sigterm)
-    storage_path = sys.argv[1]
+    
+    # Support both command-line argument and MCP_STORAGE_DIR environment variable
+    if len(sys.argv) == 2:
+        storage_path = sys.argv[1]
+    else:
+        storage_path = os.environ.get("MCP_STORAGE_DIR")
+        if not storage_path:
+            print("Usage: fast-markdown-mcp <storage_path> or set MCP_STORAGE_DIR environment variable")
+            sys.exit(1)
+        print(f"Using MCP_STORAGE_DIR from environment: {storage_path}")
     
     try:
         server = FastMarkdownServer(storage_path)

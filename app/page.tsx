@@ -545,27 +545,18 @@ const handleCrawlSelectedClick = async () => {
       </header>
 
       <div className="container mx-auto px-4 py-8 space-y-6">
-        {/* Removed outer container div for Statistics/Data section */}
-          {/* Header for Statistics section - Title only */}
-          {/* Removed Statistics header */}
-          {/* Container for Data Label (implicit in JobStatsSummary) + Icon + Stats */}
-          {/* Container for Data Label (implicit in JobStatsSummary) + Icon */}
-          {/* Use flex to align the (implicit) Data label and the icon */}
-          {/* Container for implicit "Data" label (from JobStatsSummary) and the settings icon */}
+        {/* Stats/Data Section */}
+        <div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-6 border border-gray-700 shadow-xl">
           <div className="flex justify-between items-center mb-4">
-            {/* Placeholder for the "Data" label which should be rendered by JobStatsSummary */}
-            {/* We might need to adjust JobStatsSummary later if it doesn't render the label */}
-            <div></div>
-            {/* Settings Icon aligned to the right */}
+            <h2 className="text-2xl font-semibold text-cyan-400">Data</h2>
             <MCPConfigDialog>
               <Button variant="outline" size="icon" aria-label="MCP Server Configuration" className="bg-white text-black hover:bg-gray-100 hover:text-black">
                 <Settings className="h-4 w-4" />
               </Button>
             </MCPConfigDialog>
           </div>
-          {/* Render JobStatsSummary below the header */}
           <JobStatsSummary jobStatus={jobStatus} />
-        {/* Removed closing tag for the outer container div */}
+        </div>
 
         <div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-6 border border-gray-700 shadow-xl">
           <h2 className="text-2xl font-semibold mb-4 text-blue-400">Start Exploration</h2>

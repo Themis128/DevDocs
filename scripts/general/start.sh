@@ -78,12 +78,10 @@ uvicorn app.main:app --host 0.0.0.0 --port 24125 --reload > ../logs/backend.log 
 BACKEND_PID=$!
 cd "$ROOT_DIR"
 
-# Activate MCP server's virtual environment and start it
+# Start MCP server (installed via pipx)
 echo -e "${BLUE}Starting MCP server...${NC}"
-source fast-markdown-mcp/venv/bin/activate
-PYTHONPATH="$ROOT_DIR/fast-markdown-mcp/src" \
-    fast-markdown-mcp/venv/bin/python -m fast_markdown_mcp.server \
-    "$ROOT_DIR/storage/markdown" > logs/mcp.log 2>&1 &
+MCP_STORAGE_DIR="$ROOT_DIR/storage/markdown" \
+    /home/tbaltzakis/.local/bin/fast-markdown-mcp > logs/mcp.log 2>&1 &
 MCP_PID=$!
 
 # Wait for services to be ready
